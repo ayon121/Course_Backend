@@ -70,6 +70,22 @@ const getAllCoursesService = async (publishedOnly = true) => {
     };
 };
 
+// Get all courses for admin (including unpublished)
+const getAllCoursesAdminService = async () => {
+    const filter: any = { isDeleted: false };
+
+    const courses = await Course.find(filter)
+        .select("title description banner category isPublished createdAt")
+        .sort({ createdAt: -1 });
+
+    const totalCourses = await Course.countDocuments(filter);
+
+    return {
+        data: courses,
+        meta: { total: totalCourses },
+    };
+};
+
 // Get single course by ID
 const getCourseByIdService = async (courseId: string) => {
     if (!Types.ObjectId.isValid(courseId)) {
@@ -126,10 +142,23 @@ const deleteCourseService = async (courseId: string, userId?: string) => {
     return course;
 };
 
+const updatePublishStatus = async (courseId: string, isPublished: boolean) => {
+    const course = await Course.findById(courseId);
+
+    if (!course) throw new AppError(404, "Course not found");
+
+    course.isPublished = isPublished;
+    await course.save();
+
+    return course;
+};
+
 export const CourseServices = {
     createCourseService,
     getAllCoursesService,
     getCourseByIdService,
     updateCourseService,
     deleteCourseService,
+    getAllCoursesAdminService,
+    updatePublishStatus,
 };

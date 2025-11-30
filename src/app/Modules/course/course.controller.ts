@@ -21,6 +21,12 @@ export const getAllCoursesController = catchAsync(async (req: Request, res: Resp
   res.status(200).json({ success: true, ...courses });
 });
 
+// Get All Courses for Admin
+export const getAllCoursesAdminController = catchAsync(async (req: Request, res: Response) => {
+  const courses = await CourseServices.getAllCoursesAdminService();
+  res.status(200).json({ success: true, ...courses });
+});
+
 // Get Single Course
 export const getCourseController = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -45,4 +51,18 @@ export const deleteCourseController = catchAsync(async (req: Request, res: Respo
   const userId = decodedToken.userId; 
   const deletedCourse = await CourseServices.deleteCourseService(id, userId);
   res.status(200).json({ success: true, data: deletedCourse });
+});
+
+
+export const updateCoursePublishController = catchAsync(async (req: Request, res: Response) => {
+    const courseId = req.params.id;
+    const { isPublished } = req.body;
+
+    const updatedCourse = await CourseServices.updatePublishStatus(courseId, isPublished);
+
+    res.status(200).json({
+        success: true,
+        message: `Course is now ${isPublished ? "published" : "unpublished"}`,
+        data: updatedCourse,
+    });
 });
