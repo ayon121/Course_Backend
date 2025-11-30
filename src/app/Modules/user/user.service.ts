@@ -61,7 +61,7 @@ const UpdateUserService = async (userId: string, payload: Partial<IUser>, decode
      */
 
     if (payload.role) {
-        if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
+        if (decodedToken.role === Role.USER || decodedToken.role === Role.MODERATOR) {
             throw new AppError(401, "You are not authorized");
         }
 
@@ -71,7 +71,7 @@ const UpdateUserService = async (userId: string, payload: Partial<IUser>, decode
     }
 
     if (payload.isActive || payload.isDelete || payload.isVerified) {
-        if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
+        if (decodedToken.role === Role.USER || decodedToken.role === Role.MODERATOR || decodedToken.role === Role.ADMIN) {
             throw new AppError(401, "You are not authorized");
         }
     }
