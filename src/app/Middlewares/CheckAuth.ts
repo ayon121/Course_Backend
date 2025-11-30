@@ -12,7 +12,7 @@ export const checkAuth = (...authRoles: string[]) => async (req: Request, res: R
         const accesstoken = req.cookies.accesstoken
 
         if (!accesstoken) {
-            throw new AppError(404, "User Not Verified")
+            throw new AppError(200, "User Not Verified")
         }
         const verifiedToken = verifyToken(accesstoken, envVars.JWT_SECRET) as JwtPayload
         // // eslint-disable-next-line no-console

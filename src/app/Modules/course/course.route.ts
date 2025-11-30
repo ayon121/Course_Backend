@@ -17,6 +17,6 @@ courseRouter.get("/", getAllCoursesController);
 courseRouter.get("/:id", getCourseController);
 
 // Protected: Admin / Super Admin
-courseRouter.post("/", checkAuth( Role.ADMIN, Role.SUPER_ADMIN), addCourseController);
-courseRouter.put("/:id", checkAuth( Role.ADMIN, Role.SUPER_ADMIN), updateCourseController);
-courseRouter.delete("/:id", checkAuth( Role.ADMIN, Role.SUPER_ADMIN), deleteCourseController);
+courseRouter.post("/addcourse", checkAuth( Role.ADMIN, Role.SUPER_ADMIN), addCourseController);
+courseRouter.put("/updatecourse/:id", checkAuth( Role.ADMIN, Role.SUPER_ADMIN), updateCourseController);
+courseRouter.delete("/deletecourse/:id", checkAuth( Role.ADMIN, Role.SUPER_ADMIN), deleteCourseController);

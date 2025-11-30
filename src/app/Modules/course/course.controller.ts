@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Request, Response } from "express";
 import { CourseServices } from "./course.service";
 import { catchAsync } from "../../utils/catchAsync";
@@ -7,8 +8,10 @@ import { JwtPayload } from "jsonwebtoken";
 // Add Course
 export const addCourseController = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
-  const decodedToken = req.user
-  const course = await CourseServices.createCourseService(payload , decodedToken as JwtPayload);
+  const decodedToken = req.user as JwtPayload;
+
+  console.log(decodedToken);
+  const course = await CourseServices.createCourseService(payload , decodedToken);
   res.status(201).json({ success: true, data: course });
 });
 
