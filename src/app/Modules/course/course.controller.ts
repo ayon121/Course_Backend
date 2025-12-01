@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
 import { Request, Response } from "express";
-import { CourseServices } from "./course.service";
+import { CourseServices, getAllPublishedCoursesService } from "./course.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { JwtPayload } from "jsonwebtoken";
+import { sendResponse } from "../../utils/sendResponse";
 
 
 // Add Course
@@ -16,9 +17,16 @@ export const addCourseController = catchAsync(async (req: Request, res: Response
 });
 
 // Get All Courses
-export const getAllCoursesController = catchAsync(async (req: Request, res: Response) => {
-  const courses = await CourseServices.getAllCoursesService(true);
-  res.status(200).json({ success: true, ...courses });
+export const getAllPublishedCourses = catchAsync(async (req: Request, res: Response) => {
+  const result = await getAllPublishedCoursesService(req.query);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: "Published courses retrieved successfully",
+    meta: result.meta,
+    data: result.data,
+  });
 });
 
 // Get All Courses for Admin

@@ -4,6 +4,7 @@ import AppError from "../../ErrorHelpers/AppError";
 import { ICourse, ICourseModule } from "./course.interface";
 import { Course } from "./course.model";
 import { JwtPayload } from "jsonwebtoken";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 const createCourseService = async (payload: Partial<ICourse>, decodedToken: JwtPayload) => {
     const {
@@ -54,20 +55,31 @@ const createCourseService = async (payload: Partial<ICourse>, decodedToken: JwtP
 };
 
 // Get all courses (optionally only published)
-const getAllCoursesService = async (publishedOnly = true) => {
-    const filter: any = { isDeleted: false };
-    if (publishedOnly) filter.isPublished = true;
+export const getAllPublishedCoursesService = async (query: Record<string, any>) => {
+  // Force filter only published courses
+  const baseQuery = Course.find({ isPublished: true });
 
-    const courses = await Course.find(filter).select(
-        "title description banner category isPublished"
-    ).sort({ createdAt: -1 });
+  const courseQuery = new QueryBuilder(baseQuery, query)
+    .filter()
+    .search(["title", "description", "instructor", "category"]) // adjust fields as needed
+    .sort()
+    .fields()
+    .paginate()
+    .build();
 
-    const totalCourses = await Course.countDocuments(filter);
+  // Execute data query
+  const data = await courseQuery;
 
-    return {
-        data: courses,
-        meta: { total: totalCourses },
-    };
+  // Get pagination + meta
+  const meta = await new QueryBuilder(Course.find({ isPublished: true }), query)
+    .filter()
+    .search(["title", "description", "instructor", "category"])
+    .getMeta();
+
+  return {
+    meta,
+    data,
+  };
 };
 
 // Get all courses for admin (including unpublished)
@@ -136,6 +148,7 @@ const deleteCourseService = async (courseId: string, userId?: string) => {
         throw new AppError(403, "Not authorized to delete this course");
     }
 
+    course.isPublished = false;
     course.isDeleted = true;
     await course.save();
 
@@ -155,7 +168,7 @@ const updatePublishStatus = async (courseId: string, isPublished: boolean) => {
 
 export const CourseServices = {
     createCourseService,
-    getAllCoursesService,
+    getAllPublishedCoursesService,
     getCourseByIdService,
     updateCourseService,
     deleteCourseService,

@@ -1,12 +1,12 @@
 import { Router } from "express";
 import {
   addCourseController,
-  getAllCoursesController,
   getCourseController,
   updateCourseController,
   deleteCourseController,
   getAllCoursesAdminController,
   updateCoursePublishController,
+  getAllPublishedCourses,
 } from "./course.controller";
 import { checkAuth } from "../../Middlewares/CheckAuth";
 import { Role } from "../user/user.interface";
@@ -15,7 +15,7 @@ import { Role } from "../user/user.interface";
 export const courseRouter = Router();
 
 // Public
-courseRouter.get("/", getAllCoursesController);
+courseRouter.get("/public/all", getAllPublishedCourses);
 // Admin / Super Admin
 courseRouter.get("/allcourseadmin", checkAuth( Role.ADMIN, Role.SUPER_ADMIN), getAllCoursesAdminController);
 
