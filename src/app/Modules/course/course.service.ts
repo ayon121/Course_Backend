@@ -110,6 +110,27 @@ const getCourseByIdService = async (courseId: string) => {
     return course;
 };
 
+
+// Get single course by ID for PUBLIC access (ONLY published course)
+const getCourseByIdPublicService = async (courseId: string) => {
+    if (!Types.ObjectId.isValid(courseId)) {
+        throw new AppError(400, "Invalid course ID");
+    }
+
+    // Only return course if isPublished = true and not deleted
+    const course = await Course.findOne({
+        _id: courseId,
+        isPublished: true,
+        isDeleted: false,
+    });
+
+    if (!course) {
+        throw new AppError(404, "Course not found or not published");
+    }
+
+    return course;
+};
+
 // Update course with modules
 const updateCourseService = async (
     courseId: string,
@@ -174,4 +195,5 @@ export const CourseServices = {
     deleteCourseService,
     getAllCoursesAdminService,
     updatePublishStatus,
+    getCourseByIdPublicService
 };

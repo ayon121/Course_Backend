@@ -6,28 +6,50 @@ import AppError from "../../ErrorHelpers/AppError";
 import { IAuthProvider, IUser, Role } from "./user.interface";
 import { User } from "./user.model";
 import bcrypt from "bcryptjs";
+import { CreateUserToken } from "../../utils/usertoken";
 
 const createUserService = async (payload: Partial<IUser>) => {
     const { email, password, ...rest } = payload;
 
-    const isUserExist = await User.findOne({ email })
-    if (isUserExist) {
-        throw new AppError(500, "User Already Exist")
+    if (!email) {
+        throw new AppError(400, "Email is required");
+    }
+    if (!password) {
+        throw new AppError(400, "Password is required");
     }
 
-    const hashPassword = await bcrypt.hash(password as string, Number(envVars.BCRYPT_SALT))
-    // const isPasswordMatch = await bcrypt.compare(password as string , hashPassword)
+    const isUserExist = await User.findOne({ email });
 
-    const autProvider: IAuthProvider = { provider: "credentials", providerid: email as string }
+    if (isUserExist) {
+        throw new AppError(409, "User already exists with this email");
+    }
+
+    const hashedPassword = await bcrypt.hash(
+        password,
+        Number(envVars.BCRYPT_SALT)
+    );
+
+    const authProvider: IAuthProvider = {
+        provider: "credentials",
+        providerid: email,
+    };
+
+    
+
     const user = await User.create({
-        email: email,
-        password: hashPassword,
-        auths: [autProvider],
-        ...rest
-    })
+        email,
+        password: hashedPassword,
+        auths: [authProvider],
+        ...rest,
+    });
+    const userTokens = CreateUserToken(user)
 
-    return user
-}
+    return {
+        accesstoken: userTokens.accesstoken,
+        refreshtoken: userTokens.refreshtoken,
+        user: rest
+    }
+};
 
 const getAllUserService = async () => {
     const users = await User.find({})

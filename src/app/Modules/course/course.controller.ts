@@ -35,10 +35,16 @@ export const getAllCoursesAdminController = catchAsync(async (req: Request, res:
   res.status(200).json({ success: true, ...courses });
 });
 
-// Get Single Course
+// Get Single Course for Admin
 export const getCourseController = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const course = await CourseServices.getCourseByIdService(id);
+  res.status(200).json({ success: true, data: course });
+});
+// Get Single Course for Public
+export const getCoursebyidPublicController = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const course = await CourseServices.getCourseByIdPublicService(id);
   res.status(200).json({ success: true, data: course });
 });
 

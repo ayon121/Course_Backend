@@ -10,25 +10,19 @@ import { catchAsync } from "../../utils/catchAsync";
 
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const user = await UserServices.createUserService(req.body)
+  try {
+    const user = await UserServices.createUserService(req.body);
 
-        sendResponse(res , {
-            success : true,
-            statusCode : 201,
-            message : "User Created Successfully",
-            data : user,
-
-        })
-        
-    } catch (err: any) {
-        console.log(err);
-        next(err)
-
-
-    }
-
-}
+    return sendResponse(res, {
+      success: true,
+      statusCode: 201,
+      message: "User created successfully",
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const UpdateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
