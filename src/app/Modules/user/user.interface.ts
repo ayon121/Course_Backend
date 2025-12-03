@@ -24,6 +24,9 @@ export interface IUserPurchasedCourse {
   courseId: Types.ObjectId;
   purchasedAt: Date;
   progress: number; // overall progress %, 0–100
+  courseCompleted?: boolean;
+  courseCompletionDate?: Date;
+  coursetitle: string;
   lastViewedModuleId?: Types.ObjectId;
   completedModules: Types.ObjectId[]; // store completed module IDs
 }

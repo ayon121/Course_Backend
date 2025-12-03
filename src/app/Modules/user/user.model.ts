@@ -41,6 +41,9 @@ const PurchasedCourseSchema = new Schema<IUserPurchasedCourse>(
       type: Schema.Types.ObjectId,
       ref: "CourseModule",
     },
+    courseCompleted: { type: Boolean, default: false },
+    courseCompletionDate: { type: Date },
+    coursetitle: { type: String, required: true },
     completedModules: [
       {
         type: Schema.Types.ObjectId,

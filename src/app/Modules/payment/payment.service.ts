@@ -5,45 +5,73 @@ import OrderModel from "../order/order.model"
 
 import { ISSLCommerz } from "../sslCommerz/sslCommerz.interface"
 import { SSLService } from "../sslCommerz/sslCommerz.service"
+import { User } from "../user/user.model"
 import { PAYMENT_STATUS } from "./payment.interface"
 import PaymentModel from "./payment.model"
 
 
 const successPayment = async (query: Record<string, string>) => {
-    // Update Order orderStatus to COMPLETED
-    // update payment status to paid
+  const session = await OrderModel.startSession();
+  session.startTransaction();
 
-    const session = await OrderModel.startSession()
+  try {
+    // 1️⃣ Update Payment Status
+    const updatedPayment = await PaymentModel.findOneAndUpdate(
+      { transactionId: query.transactionId },
+      { status: PAYMENT_STATUS.PAID },
+      { new: true, runValidators: true, session }
+    );
 
-    session.startTransaction()
-
-    try {
-
-        const updatedPayment = await PaymentModel.findOneAndUpdate({ transactionId: query.transactionId }, {
-            status: PAYMENT_STATUS.PAID
-
-        }, { new: true, runValidators: true, session })
-        await OrderModel.findByIdAndUpdate(
-            updatedPayment?.orderId,
-            { orderStatus: ORDER_STATUS.COMPELTED },
-            { new: true, runValidators: true, session }
-        )
-        await session.commitTransaction()
-        session.endSession()
-        return {
-            success: true, message: "Payment Completed"
-        }
-
-    } catch (error: any) {
-        await session.abortTransaction()
-        session.endSession()
-        throw error
-
-
+    if (!updatedPayment) {
+      throw new Error("Payment not found!");
     }
 
+    // 2️⃣ Update Order status to COMPLETED
+    const order = await OrderModel.findByIdAndUpdate(
+      updatedPayment.orderId,
+      { orderStatus: ORDER_STATUS.COMPELTED },
+      { new: true, runValidators: true, session }
+    );
 
-}
+    if (!order) {
+      throw new Error("Order not found!");
+    }
+
+    // 3️⃣ Add Purchased Course to User
+    // Assuming order contains: userId, courseId, courseTitle
+    const purchasedCourseData = {
+      courseId: order.courseId,
+      coursetitle: order.courseTitle,
+      purchasedAt: new Date(),
+      lastViewedModuleId : null,
+      progress: 0,
+      completedModules: [],
+      courseCompleted: false,
+    };
+
+    await User.findByIdAndUpdate(
+      order.userId,
+      {
+        $push: { purchasedCourses: purchasedCourseData },
+      },
+      { new: true, runValidators: true, session }
+    );
+
+    // 4️⃣ Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return {
+      success: true,
+      message: "Payment Completed & Course Added",
+    };
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+
 
 
 const failPayment = async (query: Record<string, string>) => {
