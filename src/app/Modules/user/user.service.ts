@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 
 import { JwtPayload } from "jsonwebtoken";
@@ -7,6 +8,7 @@ import { IAuthProvider, IUser, Role } from "./user.interface";
 import { User } from "./user.model";
 import bcrypt from "bcryptjs";
 import { CreateUserToken } from "../../utils/usertoken";
+import { Course } from "../course/course.model";
 
 const createUserService = async (payload: Partial<IUser>) => {
     const { email, password, ...rest } = payload;
@@ -139,6 +141,65 @@ const getUserPurchasedCourses = async (userId: string) => {
     return user.purchasedCourses;
 }
 
+
+export const getUserSinglePurchasedCourse = async (
+  userId: string,
+  purchasedCourseId: string
+) => {
+
+  // Find user + purchased course entry
+  const user = await User.findById(userId).select("purchasedCourses");
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  //  Find purchased course entry inside user's array
+  const purchasedCourse = user.purchasedCourses.find(
+    (c: any) => c.courseId?.toString() === purchasedCourseId
+  );
+
+  if (!purchasedCourse) {
+    throw new Error("User has not purchased this course");
+  }
+
+  // Get full course info including modules
+  const course = await Course.findById(purchasedCourseId)
+    .select(
+      "title description duration banner price discountedPrice instructor modules category tags"
+    )
+    .lean();
+
+  if (!course) {
+    throw new Error("Course not found");
+  }
+
+  // 4️⃣ Combine both data → Final response for student dashboard
+  return {
+    _id: purchasedCourseId,
+    title: course.title,
+    description: course.description,
+    instructor: course.instructor,
+    banner: course.banner,
+    duration: course.duration,
+    price: course.price,
+    discountedPrice: course.discountedPrice,
+    category: course.category,
+    tags: course.tags,
+
+    // All course modules
+    modules: course.modules,
+
+    // Purchased progress details
+    purchasedAt: purchasedCourse.purchasedAt,
+    progress: purchasedCourse.progress,
+    courseCompleted: purchasedCourse.courseCompleted,
+    courseCompletionDate: purchasedCourse.courseCompletionDate,
+    lastViewedModuleId: purchasedCourse.lastViewedModuleId,
+    completedModules: purchasedCourse.completedModules,
+    coursetitle: purchasedCourse.coursetitle,
+  };
+};
 
 export const UserServices = {
     createUserService,

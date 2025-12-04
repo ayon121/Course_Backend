@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { NextFunction, Request, Response } from "express";
-import { UserServices } from "./user.service";
+import { getUserSinglePurchasedCourse, UserServices } from "./user.service";
 import { sendResponse } from "../../utils/sendResponse";
 import { JwtPayload } from "jsonwebtoken";
 import { catchAsync } from "../../utils/catchAsync";
+
 
 
 
@@ -96,6 +97,23 @@ const getPurchasedCourses = catchAsync(async (req: Request, res: Response) => {
         data: result,
     });
 })
+const getUserPurchasedCourseController = catchAsync(async (req: Request, res: Response) => {
+    const decodedtoken = req.user as JwtPayload
+    const { courseId } = req.params;
+
+    const purchasedCourse = await getUserSinglePurchasedCourse(
+        decodedtoken.userId,
+        courseId.toString()
+    );
+    return sendResponse(res, {
+        success: true,
+        statusCode: 200,
+        message: "Purchased course fetched successfully",
+        data: purchasedCourse,
+    });
+})
+
+
 
 export const UserControllers = {
     createUser,
@@ -103,4 +121,5 @@ export const UserControllers = {
     UpdateUser,
     getMe,
     getPurchasedCourses,
+    getUserPurchasedCourseController,
 }
