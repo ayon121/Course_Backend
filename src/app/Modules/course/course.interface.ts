@@ -28,7 +28,7 @@ export interface ICourse {
 
   // Banner
   // Frontend now uses a banner link input
-  // Later you may attach a real file upload
+  // Later may attach a real file upload
   banner: string;
 
   // Pricing

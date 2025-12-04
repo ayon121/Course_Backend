@@ -10,18 +10,18 @@ import { catchAsync } from "../../utils/catchAsync";
 
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = await UserServices.createUserService(req.body);
+    try {
+        const user = await UserServices.createUserService(req.body);
 
-    return sendResponse(res, {
-      success: true,
-      statusCode: 201,
-      message: "User created successfully",
-      data: user,
-    });
-  } catch (error) {
-    next(error);
-  }
+        return sendResponse(res, {
+            success: true,
+            statusCode: 201,
+            message: "User created successfully",
+            data: user,
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 const UpdateUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -31,18 +31,18 @@ const UpdateUser = async (req: Request, res: Response, next: NextFunction) => {
         const payload = req.body
         const verified = req.user;
 
-        const user = await UserServices.UpdateUserService(userId , payload , verified as JwtPayload)
+        const user = await UserServices.UpdateUserService(userId, payload, verified as JwtPayload)
 
-        sendResponse(res , {
-            success : true,
-            statusCode : 201,
-            message : "User Created Successfully",
-            data : user,
+        sendResponse(res, {
+            success: true,
+            statusCode: 201,
+            message: "User Created Successfully",
+            data: user,
 
         })
 
 
-        
+
     } catch (err: any) {
         console.log(err);
         next(err)
@@ -56,17 +56,17 @@ const UpdateUser = async (req: Request, res: Response, next: NextFunction) => {
 const getAllUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const result = await UserServices.getAllUserService()
-        sendResponse(res , {
-            success : true,
-            statusCode : 201,
-            message : "User Created Successfully",
-            data : result.data,
-            meta : result.meta,
+        sendResponse(res, {
+            success: true,
+            statusCode: 201,
+            message: "User Created Successfully",
+            data: result.data,
+            meta: result.meta,
         })
 
 
     } catch (err: any) {
-    
+
         console.log(err);
         next(err)
 
@@ -86,9 +86,21 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const getPurchasedCourses = catchAsync(async (req: Request, res: Response) => {
+    const decodedtoken = req.user as JwtPayload
+    const result = await UserServices.getUserPurchasedCourses(decodedtoken.userId);
+    sendResponse(res, {
+        success: true,
+        statusCode: 200,
+        message: "Purchased courses fetched successfully",
+        data: result,
+    });
+})
+
 export const UserControllers = {
     createUser,
     getAllUser,
     UpdateUser,
-    getMe
+    getMe,
+    getPurchasedCourses,
 }

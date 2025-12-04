@@ -34,7 +34,7 @@ const createUserService = async (payload: Partial<IUser>) => {
         providerid: email,
     };
 
-    
+
 
     const user = await User.create({
         email,
@@ -115,11 +115,38 @@ const getMe = async (userId: string) => {
 };
 
 
+
+const getUserPurchasedCourses = async (userId: string) => {
+    const user = await User.findById(userId)
+        .select("purchasedCourses")
+        .populate({
+            path: "purchasedCourses.courseId",
+            select: "title banner instructor duration"
+        })
+        .populate({
+            path: "purchasedCourses.lastViewedModuleId",
+            select: "title duration"
+        })
+        .populate({
+            path: "purchasedCourses.completedModules",
+            select: "title duration"
+        });
+
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    return user.purchasedCourses;
+}
+
+
 export const UserServices = {
     createUserService,
     getAllUserService,
     UpdateUserService,
-    getMe
+    getMe,
+    getUserPurchasedCourses,
+
 }
 
 

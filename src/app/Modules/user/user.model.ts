@@ -39,7 +39,7 @@ const PurchasedCourseSchema = new Schema<IUserPurchasedCourse>(
     },
     lastViewedModuleId: {
       type: Schema.Types.ObjectId,
-      ref: "CourseModule",
+      ref: "Course",
     },
     courseCompleted: { type: Boolean, default: false },
     courseCompletionDate: { type: Date },
@@ -47,13 +47,14 @@ const PurchasedCourseSchema = new Schema<IUserPurchasedCourse>(
     completedModules: [
       {
         type: Schema.Types.ObjectId,
-        ref: "CourseModule",
+        ref: "Course",
       },
     ],
   },
   {
-    _id: false,
+    _id: true,
     versionKey: false,
+    timestamps: true,
   }
 );
 
