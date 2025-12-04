@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { UserControllers } from "./user.controller";
+import { updateLastViewed, UserControllers } from "./user.controller";
 import { validateRequest } from "../../Middlewares/validateRequest";
 import { createUserZodSchema } from "./user.validation";
 
@@ -19,6 +19,7 @@ Userrouter.post("/register", validateRequest(createUserZodSchema), UserControlle
 Userrouter.get("/all-users", checkAuth( Role.ADMIN, Role.SUPER_ADMIN) , UserControllers.getAllUser)
 Userrouter.get("/mycourses", checkAuth(...Object.values(Role)), UserControllers.getPurchasedCourses)
 Userrouter.get("/course/purchased/:courseId", checkAuth(...Object.values(Role)), UserControllers.getUserPurchasedCourseController)
+Userrouter.patch("/course/update-last-viewed",checkAuth(...Object.values(Role)), updateLastViewed)
 Userrouter.patch("/:id", validateRequest(createUserZodSchema) , checkAuth(...Object.values(Role)) , UserControllers.UpdateUser)
 
 

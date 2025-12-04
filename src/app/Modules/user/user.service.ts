@@ -9,6 +9,8 @@ import { User } from "./user.model";
 import bcrypt from "bcryptjs";
 import { CreateUserToken } from "../../utils/usertoken";
 import { Course } from "../course/course.model";
+import httpStatus from "http-status";
+import mongoose from "mongoose";
 
 const createUserService = async (payload: Partial<IUser>) => {
     const { email, password, ...rest } = payload;
@@ -143,63 +145,112 @@ const getUserPurchasedCourses = async (userId: string) => {
 
 
 export const getUserSinglePurchasedCourse = async (
-  userId: string,
-  purchasedCourseId: string
+    userId: string,
+    purchasedCourseId: string
 ) => {
 
-  // Find user + purchased course entry
-  const user = await User.findById(userId).select("purchasedCourses");
+    // Find user + purchased course entry
+    const user = await User.findById(userId).select("purchasedCourses");
 
-  if (!user) {
-    throw new Error("User not found");
-  }
+    if (!user) {
+        throw new Error("User not found");
+    }
 
-  //  Find purchased course entry inside user's array
-  const purchasedCourse = user.purchasedCourses.find(
-    (c: any) => c.courseId?.toString() === purchasedCourseId
-  );
+    //  Find purchased course entry inside user's array
+    const purchasedCourse = user.purchasedCourses.find(
+        (c: any) => c.courseId?.toString() === purchasedCourseId
+    );
 
-  if (!purchasedCourse) {
-    throw new Error("Invlalid course or course not purchased");
-  }
+    if (!purchasedCourse) {
+        throw new Error("Invlalid course or course not purchased");
+    }
 
-  // Get full course info including modules
-  const course = await Course.findById(purchasedCourseId)
-    .select(
-      "title description duration banner price discountedPrice instructor modules category tags"
-    )
-    .lean();
+    // Get full course info including modules
+    const course = await Course.findById(purchasedCourseId)
+        .select(
+            "title description duration banner price discountedPrice instructor modules category tags"
+        )
+        .lean();
 
-  if (!course) {
-    throw new Error("Course not found");
-  }
+    if (!course) {
+        throw new Error("Course not found");
+    }
 
-  // 4️⃣ Combine both data → Final response for student dashboard
-  return {
-    _id: purchasedCourseId,
-    title: course.title,
-    description: course.description,
-    instructor: course.instructor,
-    banner: course.banner,
-    duration: course.duration,
-    price: course.price,
-    discountedPrice: course.discountedPrice,
-    category: course.category,
-    tags: course.tags,
+    // 4️⃣ Combine both data → Final response for student dashboard
+    return {
+        _id: purchasedCourseId,
+        title: course.title,
+        description: course.description,
+        instructor: course.instructor,
+        banner: course.banner,
+        duration: course.duration,
+        price: course.price,
+        discountedPrice: course.discountedPrice,
+        category: course.category,
+        tags: course.tags,
 
-    // All course modules
-    modules: course.modules,
+        // All course modules
+        modules: course.modules,
 
-    // Purchased progress details
-    purchasedAt: purchasedCourse.purchasedAt,
-    progress: purchasedCourse.progress,
-    courseCompleted: purchasedCourse.courseCompleted,
-    courseCompletionDate: purchasedCourse.courseCompletionDate,
-    lastViewedModuleId: purchasedCourse.lastViewedModuleId,
-    completedModules: purchasedCourse.completedModules,
-    coursetitle: purchasedCourse.coursetitle,
-  };
+        // Purchased progress details
+        purchasedAt: purchasedCourse.purchasedAt,
+        progress: purchasedCourse.progress,
+        courseCompleted: purchasedCourse.courseCompleted,
+        courseCompletionDate: purchasedCourse.courseCompletionDate,
+        lastViewedModuleId: purchasedCourse.lastViewedModuleId,
+        completedModules: purchasedCourse.completedModules,
+        coursetitle: purchasedCourse.coursetitle,
+    };
 };
+
+
+
+export const updateLastViewedModule = async (userId: string, courseId: string, moduleId: string) => {
+    // 1. CHECK user exists
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    }
+
+    // 2. FIND purchased course
+    const purchasedCourse = user.purchasedCourses.find(
+        (c: any) => c.courseId.toString() === courseId
+    );
+
+    if (!purchasedCourse) {
+        throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "You have not purchased this course"
+        );
+    }
+
+    // 3. CHECK module exists in Course model
+    const courseData = await Course.findById(courseId).select("modules");
+    if (!courseData) {
+        throw new AppError(httpStatus.NOT_FOUND, "Course not found");
+    }
+
+    const moduleExists = courseData.modules.some(
+        (m: any) => m._id.toString() === moduleId
+    );
+
+    if (!moduleExists) {
+        throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Invalid module. Module not found in this course"
+        );
+    }
+    // 4. UPDATE last viewed module
+    purchasedCourse.lastViewedModuleId = new mongoose.Types.ObjectId(moduleId);
+
+    await user.save();
+
+    return {
+        message: "Last viewed module updated successfully",
+        lastViewedModuleId: moduleId,
+    };
+}
+
 
 export const UserServices = {
     createUserService,
