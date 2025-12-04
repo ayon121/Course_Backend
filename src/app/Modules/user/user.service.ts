@@ -160,7 +160,7 @@ export const getUserSinglePurchasedCourse = async (
   );
 
   if (!purchasedCourse) {
-    throw new Error("User has not purchased this course");
+    throw new Error("Invlalid course or course not purchased");
   }
 
   // Get full course info including modules
