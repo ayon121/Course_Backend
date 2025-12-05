@@ -252,6 +252,73 @@ export const updateLastViewedModule = async (userId: string, courseId: string, m
 }
 
 
+export const completeModuleService = async (
+    userId: string,
+    courseId: string,
+    moduleId: string
+) => {
+    const user: any = await User.findOne({
+        _id: userId,
+        "purchasedCourses.courseId": courseId
+    });
+
+    if (!user) throw new Error("Course not purchased");
+
+    const purchased = user.purchasedCourses.find(
+        (c: any) => c.courseId.toString() === courseId
+    );
+
+    if (!purchased) throw new Error("Purchased course not found");
+
+    const exists = purchased.completedModules.some(
+        (id: any) => id.toString() === moduleId
+    );
+
+    if (!exists) {
+        purchased.completedModules.push(new mongoose.Types.ObjectId(moduleId));
+    }
+
+    // Auto-progress calculation
+    const totalModules = purchased.totalModules || purchased.modules?.length || 0;
+
+    if (totalModules > 0) {
+        const completed = purchased.completedModules.length;
+        purchased.progress = Math.floor((completed / totalModules) * 100);
+    }
+
+    await user.save();
+
+    return purchased.progress;
+};
+
+
+export const completeCourseService = async (
+    userId: string,
+    courseId: string
+) => {
+    const user: any = await User.findOne({
+        _id: userId,
+        "purchasedCourses.courseId": courseId
+    });
+
+    if (!user) throw new Error("Course not purchased");
+
+    const purchased = user.purchasedCourses.find(
+        (c: any) => c.courseId.toString() === courseId
+    );
+
+    if (!purchased) throw new Error("Purchased course not found");
+
+    purchased.courseCompleted = true;
+    purchased.courseCompletionDate = new Date();
+    purchased.progress = 100;
+
+    await user.save();
+
+    return true;
+};
+
+
 export const UserServices = {
     createUserService,
     getAllUserService,

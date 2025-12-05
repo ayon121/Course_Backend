@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { NextFunction, Request, Response } from "express";
-import { getUserSinglePurchasedCourse, updateLastViewedModule, UserServices } from "./user.service";
+import { completeCourseService, completeModuleService, getUserSinglePurchasedCourse, updateLastViewedModule, UserServices } from "./user.service";
 import { sendResponse } from "../../utils/sendResponse";
 import { JwtPayload } from "jsonwebtoken";
 import { catchAsync } from "../../utils/catchAsync";
@@ -128,6 +128,31 @@ export const updateLastViewed = catchAsync(async (req: Request, res: Response) =
         data: result,
     });
 })
+
+
+export const completeModuleController = catchAsync(async (req: Request, res: Response) => {
+    const { courseId, moduleId } = req.body;
+    const decodedtoken = req.user as JwtPayload
+
+    const progress = await completeModuleService(decodedtoken.userId, courseId, moduleId);
+
+    res.json({
+        success: true,
+        progress
+    });
+});
+
+export const completeCourseController = catchAsync(async (req: Request, res: Response) => {
+    const { courseId } = req.body;
+    const decodedtoken = req.user as JwtPayload
+
+    const result = await completeCourseService(decodedtoken.userId, courseId);
+
+    res.json({
+        success: true,
+        data: result
+    });
+});
 
 export const UserControllers = {
     createUser,
