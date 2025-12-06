@@ -268,6 +268,7 @@ export const completeModuleService = async (
         (c: any) => c.courseId.toString() === courseId
     );
 
+
     if (!purchased) throw new Error("Purchased course not found");
 
     const exists = purchased.completedModules.some(
@@ -279,10 +280,15 @@ export const completeModuleService = async (
     }
 
     // Auto-progress calculation
-    const totalModules = purchased.totalModules || purchased.modules?.length || 0;
+    //  Get module count from actual course
+    const course = await Course.findById(courseId).lean();
+    if (!course) throw new Error("Course not found");
 
+    const totalModules = course.modules.length;
+    const completed = purchased.completedModules.length;
+
+    // Calculate progress
     if (totalModules > 0) {
-        const completed = purchased.completedModules.length;
         purchased.progress = Math.floor((completed / totalModules) * 100);
     }
 
