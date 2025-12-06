@@ -5,6 +5,7 @@ import { courseRouter } from "../course/course.route"
 import Orderrouter from "../order/order.route"
 import { PaymentRoutes } from "../payment/payment.route"
 import bannerrouter from "../banner/banner.route"
+import { eventRouter } from "../event/event.route"
 
 export const router = Router()
 const moduleRoutes = [
@@ -31,6 +32,10 @@ const moduleRoutes = [
      {
         path: "/banner",
         route: bannerrouter
+    },
+     {
+        path: "/event",
+        route: eventRouter
     },
 ]
 
